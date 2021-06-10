@@ -1,47 +1,45 @@
-#include "stm32f10x.h"
-#include "cmsis_os.h"
+#include "mbed.h"
+#include "cmsis_os.h"    
+/* #include "Board_LED.h" */
 
-// circular buffer 
+#define CBUFFER_SIZE 8
 
-// The hidden definition of  circular buffer structure
-typedef struct {
-  uint8_t * buffer;
-	int head;
-	int tail;
-	const int maxlen;
-}circular_buf_t;
- 
+int CBUFFER[CBUFFER_SIZE];
+int data[9] = {1,2,3,4,5,6,7,8,9};
+int output [9];
+int cbufferIndex = 0;
+int i = 0;
+int j = 0;
+/* int readIndex = 0;
+int writeIndex = 0; */
 
-// push data into the circuilar buffer
-int circ_buf_push(circular_buf_t *c, uint8_t data)
-{
-    int next;
+void producer_thread (
+	/*---
+		wait or get event
+		check if empty???
+		head & tail
+		----*/
+	osSemaphoreWait(doneConsume, osWaitForever);
+	osMutexWait(buffMutex, osWaitForever);
+	CBUFFER[cbufferIndex] = data[i];
+	cbufferIndex++;
+	i++;
+	osMutexRelease(buffMutex);
+	osSemaphoreRelease(doneProduce);
+)
 
-    next = c->head + 1;  // next is where head will point to after this write.
-    if (next >= c->maxlen)
-        next = 0;
+void consumer_thread (
+	osSemaphoreWait(doneProduce, osWaitForever);
+	osMutexWait(buffMutex, osWaitForever);
+	output[j] = CBUFFER[cbufferIndex];
+	j++;
+	cbufferIndex--;
+	osMutexRelease(buffMutex);
+	osSemaphoreRelease(doneConsume);
+)
 
-    if (next == c->tail)  // if the head + 1 == tail, circular buffer is full
-        return -1;
-
-    c->buffer[c->head] = data;  // Load data and then move
-    c->head = next;             // head to next data offset.
-    return 0;  // return success to indicate successful push.
-}
-
-// data taken out from the buffer
-int circ_bbuf_pop(circular_buf_t *c, uint8_t *data)
-{
-    int next;
-
-    if (c->head == c->tail)  // if the head == tail, we don't have any data
-        return -1;
-
-    next = c->tail + 1;  // next is where tail will point to after this read.
-    if(next >= c->maxlen)
-        next = 0;
-
-    *data = c->buffer[c->tail];  // Read data and then move
-    c->tail = next;              // tail to next offset.
-    return 0;  // return success to indicate successful push.
-}
+void main (
+		doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
+		doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 0);	
+		buffMutex = osMutexCreate(osMutex(buffMutex));	
+)
