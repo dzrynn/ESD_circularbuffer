@@ -31,7 +31,8 @@ static int cbufferTail = 0;
 static int i = 0;
 static int j = 0;
 
-void main (
+int main(void)
+{
 
 	osKernelInitialize ();
 
@@ -40,9 +41,10 @@ void main (
 		buffMutex = osMutexCreate(osMutex(buffMutex));
 			
 	osKernelStart ();
-)
+}
 
-void producer_thread (
+void producer_thread ()
+{
 	/*---
 		wait or get event (control speed f data??)
 		check if empty & full???
@@ -58,9 +60,10 @@ void producer_thread (
   cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneProduce);
-)
+}
 
-void consumer_thread (
+void consumer_thread ()
+{
 
 /*    if cbufferHead = cbufferTail
     (
@@ -74,6 +77,6 @@ void consumer_thread (
     cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneConsume);
-)
+}
 
 
