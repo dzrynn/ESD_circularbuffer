@@ -1,23 +1,25 @@
-/*#include "mbed.h"
-#include "cmsis_os.h"    
- #include "Board_LED.h" */
+#include "cmsis_os.h"
+#include "stm32f10x.h"
 
 void producer_thread (void const *argument);
 void consumer_thread(void const *argument);
+
+// Define threads
 osThreadDef(producer_thread, osPriorityNormal, 1, 0);
 osThreadDef(consumer_thread, osProrityNormal,1,0);
 
-//Define the semaphore
+// Define the semaphores
 
-osSemaphoreId doneproduce;
-osSemaphoreDef(doneproduce);
-osSemaphoreId doneconsume;
-osSemaphoreDef(doneconsume);
+osSemaphoreId doneProduce;
+osSemaphoreDef(doneProduce);
+osSemaphoreId doneConsume;
+osSemaphoreDef(doneConsume);
 
 // Define the mutex
 
 osMutexId buffMutex;
 osMutexDef(buffMutex);
+
 #define CBUFFER_SIZE 8
 #define DATA_SIZE 9
 
@@ -29,40 +31,6 @@ static int cbufferTail = 0;
 static int i = 0;
 static int j = 0;
 
-void producer_thread (
-	/*---
-		wait or get event (control speed f data??)
-		check if empty & full???
-		----*/
-    if cbufferHead = (cbufferTail % (CBUFFER_SIZE-1)) + 1     //buffer full
-    (
-
-    )
-	osSemaphoreWait(doneConsume, osWaitForever);
-	osMutexWait(buffMutex, osWaitForever);
-	CBUFFER[cbufferTail] = data[i];
-	i++;
-    cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
-	osMutexRelease(buffMutex);
-	osSemaphoreRelease(doneProduce);
-)
-
-void consumer_thread (
-
-    if cbufferHead = cbufferTail
-    (
-
-    )
-	osSemaphoreWait(doneProduce, osWaitForever);
-	osMutexWait(buffMutex, osWaitForever);
-	output[j] = CBUFFER[cbufferHead];
-	j++;
-    /* how to remove value from buffer?? cannot delete element from array*/
-    cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
-	osMutexRelease(buffMutex);
-	osSemaphoreRelease(doneConsume);
-)
-
 void main (
 
 	osKernelInitialize ();
@@ -73,3 +41,39 @@ void main (
 			
 	osKernelStart ();
 )
+
+void producer_thread (
+	/*---
+		wait or get event (control speed f data??)
+		check if empty & full???
+		----*/
+  /*  if cbufferHead = (cbufferTail % (CBUFFER_SIZE-1)) + 1     //buffer full
+    (
+
+    )	*/
+	osSemaphoreWait(doneConsume, osWaitForever);
+	osMutexWait(buffMutex, osWaitForever);
+	CBUFFER[cbufferTail] = data[i];
+	i++;
+  cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
+	osMutexRelease(buffMutex);
+	osSemaphoreRelease(doneProduce);
+)
+
+void consumer_thread (
+
+/*    if cbufferHead = cbufferTail
+    (
+
+    )	*/
+	osSemaphoreWait(doneProduce, osWaitForever);
+	osMutexWait(buffMutex, osWaitForever);
+	output[j] = CBUFFER[cbufferHead];
+	j++;
+    /* how to remove value from buffer?? cannot delete element from array*/
+    cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
+	osMutexRelease(buffMutex);
+	osSemaphoreRelease(doneConsume);
+)
+
+
