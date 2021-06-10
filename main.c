@@ -21,13 +21,13 @@ osMutexDef(buffMutex);
 #define CBUFFER_SIZE 8
 #define DATA_SIZE 9
 
-int CBUFFER[CBUFFER_SIZE];
-int data[DATA_SIZE] = {1,2,3,4,5,6,7,8,9};
-int output [DATA_SIZE];
-int cbufferHead = 0;
-int cbufferTail = 0;
-int i = 0;
-int j = 0;
+static int CBUFFER[CBUFFER_SIZE];
+static int data[DATA_SIZE] = {1,2,3,4,5,6,7,8,9};
+static int output [DATA_SIZE];
+static int cbufferHead = 0;
+static int cbufferTail = 0;
+static int i = 0;
+static int j = 0;
 
 void producer_thread (
 	/*---
@@ -64,7 +64,12 @@ void consumer_thread (
 )
 
 void main (
+
+	osKernelInitialize ();
+
 		doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
 		doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 0);	
-		buffMutex = osMutexCreate(osMutex(buffMutex));	
+		buffMutex = osMutexCreate(osMutex(buffMutex));
+			
+	osKernelStart ();
 )
