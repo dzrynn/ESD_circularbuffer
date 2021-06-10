@@ -2,6 +2,22 @@
 #include "cmsis_os.h"    
  #include "Board_LED.h" */
 
+void producer_thread (void const *argument);
+void consumer_thread(void const *argument);
+osThreadDef(producer_thread, osPriorityNormal, 1, 0);
+osThreadDef(consumer_thread, osProrityNormal,1,0);
+
+//Define the semaphore
+
+osSemaphoreId doneproduce;
+osSemaphoreDef(doneproduce);
+osSemaphoreId doneconsume;
+osSemaphoreDef(doneconsume);
+
+// Define the mutex
+
+osMutexId buffMutex;
+osMutexDef(buffMutex);
 #define CBUFFER_SIZE 8
 #define DATA_SIZE 9
 
