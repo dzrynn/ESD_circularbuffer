@@ -15,33 +15,34 @@ int j = 0;
 
 void producer_thread (
 	/*---
-		wait or get event
-		check if empty???
+		wait or get event (control speed f data??)
+		check if empty & full???
 		----*/
+    if cbufferHead = (cbufferTail % (CBUFFER_SIZE-1)) + 1     //buffer full
+    (
+
+    )
 	osSemaphoreWait(doneConsume, osWaitForever);
 	osMutexWait(buffMutex, osWaitForever);
 	CBUFFER[cbufferTail] = data[i];
 	i++;
-    if cbufferTail = 7 
-    (
-        cbufferTail = 0;
-    )
-    else cbufferTail++;
+    cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneProduce);
 )
 
 void consumer_thread (
+
+    if cbufferHead = cbufferTail
+    (
+
+    )
 	osSemaphoreWait(doneProduce, osWaitForever);
 	osMutexWait(buffMutex, osWaitForever);
 	output[j] = CBUFFER[cbufferHead];
 	j++;
     /* how to remove value from buffer?? cannot delete element from array*/
-    if cbufferHead = 7
-    (
-        cbufferHead = 0;
-    )
-	else cbufferHead++;
+    cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneConsume);
 )
