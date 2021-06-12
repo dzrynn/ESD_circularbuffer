@@ -40,7 +40,7 @@ int main (void)
 	osKernelInitialize ();
 
 	doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
-	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 0);	
+	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 1);	
 	buffMutex = osMutexCreate(osMutex(buffMutex));
 	T_uart1 = osThreadCreate(osThread(producer_thread), NULL);
 	T_uart2 = osThreadCreate(osThread(consumer_thread), NULL);
