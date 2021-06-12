@@ -1,12 +1,13 @@
 #include "cmsis_os.h"
 #include "stm32f10x.h"
+#include "uart.h"
 
 void producer_thread (void const *argument);
 void consumer_thread(void const *argument);
 
 // Define threads
 osThreadDef(producer_thread, osPriorityNormal, 1, 0);
-osThreadDef(consumer_thread, osProrityNormal,1,0);
+osThreadDef(consumer_thread, osPriorityNormal,1,0);
 
 // Define the semaphores
 
@@ -20,30 +21,33 @@ osSemaphoreDef(doneConsume);
 osMutexId buffMutex;
 osMutexDef(buffMutex);
 
+osThreadId T_uart1;
+osThreadId T_uart2;
+
 #define CBUFFER_SIZE 8
 #define DATA_SIZE 9
 
 static int CBUFFER[CBUFFER_SIZE];
 static int data[DATA_SIZE] = {1,2,3,4,5,6,7,8,9};
 static int output [DATA_SIZE];
-static int cbufferHead = 0;
-static int cbufferTail = 0;
+static int cbufferHead = 1;
+static int cbufferTail = 1;
 static int i = 0;
 static int j = 0;
 
-int main(void)
+int main (void)
 {
-
 	osKernelInitialize ();
 
-		doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
-		doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 0);	
-		buffMutex = osMutexCreate(osMutex(buffMutex));
-			
+	doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
+	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 0);	
+	buffMutex = osMutexCreate(osMutex(buffMutex));
+	T_uart1 = osThreadCreate(osThread(producer_thread), NULL);
+	T_uart2 = osThreadCreate(osThread(consumer_thread), NULL);
 	osKernelStart ();
 }
 
-void producer_thread ()
+void producer_thread (void const *argument)
 {
 	/*---
 		wait or get event (control speed f data??)
@@ -62,10 +66,10 @@ void producer_thread ()
 	osSemaphoreRelease(doneProduce);
 }
 
-void consumer_thread ()
+void consumer_thread(void const *argument)
 {
 
-/*    if cbufferHead = cbufferTail
+/*    if cbufferHead = cbufferTail					// buffer empty
     (
 
     )	*/
@@ -73,10 +77,8 @@ void consumer_thread ()
 	osMutexWait(buffMutex, osWaitForever);
 	output[j] = CBUFFER[cbufferHead];
 	j++;
-    /* how to remove value from buffer?? cannot delete element from array*/
-    cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
+	cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneConsume);
 }
-
 
