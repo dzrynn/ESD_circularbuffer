@@ -57,13 +57,16 @@ void producer_thread (void const *argument)
     (
 
     )	*/
+	for(;;)
+	{
 	osSemaphoreWait(doneConsume, osWaitForever);
 	osMutexWait(buffMutex, osWaitForever);
 	CBUFFER[cbufferTail] = data[i];
 	i++;
-  cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
+  	cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneProduce);
+	}
 }
 
 void consumer_thread(void const *argument)
@@ -73,6 +76,8 @@ void consumer_thread(void const *argument)
     (
 
     )	*/
+	for(;;)
+	{
 	osSemaphoreWait(doneProduce, osWaitForever);
 	osMutexWait(buffMutex, osWaitForever);
 	output[j] = CBUFFER[cbufferHead];
@@ -80,5 +85,6 @@ void consumer_thread(void const *argument)
 	cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
 	osMutexRelease(buffMutex);
 	osSemaphoreRelease(doneConsume);
+	}
 }
 
