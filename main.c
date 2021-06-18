@@ -7,7 +7,7 @@ void consumer_thread(void const *argument);
 
 // Define threads
 osThreadDef(producer_thread, osPriorityNormal, 1, 0);
-osThreadDef(consumer_thread, osPriorityNormal,1,0);
+osThreadDef(consumer_thread, osPriorityNormal, 1, 0);
 
 // Define the semaphores
 
@@ -49,10 +49,7 @@ int main (void)
 
 void producer_thread (void const *argument)
 {
-	/*---
-		wait or get event (control speed f data??)
-		check if empty & full???
-		----*/
+
   /*  if cbufferHead = (cbufferTail % (CBUFFER_SIZE-1)) + 1     //buffer full
     (
 
