@@ -7,81 +7,88 @@ void consumer_thread(void const *argument);
 
 // Define threads
 osThreadDef(producer_thread, osPriorityNormal, 1, 0);
-osThreadDef(consumer_thread, osPriorityNormal, 1, 0);
+osThreadDef(consumer_thread, osPriorityNormal,1,0);
 
 // Define the semaphores
 
-osSemaphoreId doneProduce;
-osSemaphoreDef(doneProduce);
-osSemaphoreId doneConsume;
-osSemaphoreDef(doneConsume);
+osSemaphoreId doneProduce;      // Semaphore ID
+osSemaphoreDef(doneProduce);    // Semaphore Definition
+osSemaphoreId doneConsume;      // Semaphore ID
+osSemaphoreDef(doneConsume);    // Semaphore Definition
 
 // Define the mutex
 
-osMutexId buffMutex;
-osMutexDef(buffMutex);
+osMutexId buffMutex;            // Mutex ID
+osMutexDef(buffMutex);          // Mutex Definition
 
 osThreadId T_uart1;
 osThreadId T_uart2;
 
-#define CBUFFER_SIZE 8
-#define DATA_SIZE 9
+#define BUFFER_SIZE 8
 
-static int CBUFFER[CBUFFER_SIZE];
-static int data[DATA_SIZE] = {1,2,3,4,5,6,7,8,9};
-static int output [DATA_SIZE];
-static int cbufferHead = 1;
-static int cbufferTail = 1;
-static int i = 0;
-static int j = 0;
+unsigned char put = 0;
+unsigned int output = 0;
+unsigned char cbuffer [BUFFER_SIZE] = {0};
+unsigned int head = 0;   // head = insert
+unsigned int tail = 0;   // tail = remove
+
+
+static int i=0;
+static int j=0;
+
+void enqueue(unsigned char item){
+	osSemaphoreWait(doneConsume, osWaitForever);     // wait for the Semaphore
+	osMutexWait(buffMutex, osWaitForever);
+	cbuffer[head] = item;
+	head = (head + 1) % BUFFER_SIZE;
+	osMutexRelease(buffMutex);
+	osSemaphoreRelease(doneProduce);
+}
+
+unsigned char  dequeue()
+{
+	unsigned int a =0XFF;
+	osSemaphoreWait(doneProduce, osWaitForever);
+	osMutexWait(buffMutex, osWaitForever);
+	a = cbuffer[tail];
+	tail = (tail + 1) % BUFFER_SIZE;
+	osMutexRelease(buffMutex);
+	osSemaphoreRelease(doneConsume);
+	return a;
+}
+
+
+int loop = 2;
+
+
+void producer_thread (void const *argument){
+	
+	for(; i<loop; i++){
+		enqueue(put++);
+	}
+
+}
+
+void consumer_thread(void const *argument){
+	
+	for(; j<loop; j++){
+		output=dequeue();
+		SendChar(output);
+	}
+}
 
 int main (void)
 {
-	osKernelInitialize ();
-
+	osKernelInitialize ();		  // initialize CMSIS-RTOS
+	
+	USART1_Init();
 	doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
-	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 1);	
+	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), BUFFER_SIZE);	
 	buffMutex = osMutexCreate(osMutex(buffMutex));
 	T_uart1 = osThreadCreate(osThread(producer_thread), NULL);
 	T_uart2 = osThreadCreate(osThread(consumer_thread), NULL);
-	osKernelStart ();
-}
+	
 
-void producer_thread (void const *argument)
-{
-
-  /*  if cbufferHead = (cbufferTail % (CBUFFER_SIZE-1)) + 1     //buffer full
-    (
-
-    )	*/
-	for(;;)
-	{
-	osSemaphoreWait(doneConsume, osWaitForever);
-	osMutexWait(buffMutex, osWaitForever);
-	CBUFFER[cbufferTail] = data[i];
-	i++;
-  	cbufferTail = (cbufferTail+1) % (CBUFFER_SIZE-1);
-	osMutexRelease(buffMutex);
-	osSemaphoreRelease(doneProduce);
-	}
-}
-
-void consumer_thread(void const *argument)
-{
-
-/*    if cbufferHead = cbufferTail					// buffer empty
-    (
-
-    )	*/
-	for(;;)
-	{
-	osSemaphoreWait(doneProduce, osWaitForever);
-	osMutexWait(buffMutex, osWaitForever);
-	output[j] = CBUFFER[cbufferHead];
-	j++;
-	cbufferHead = (cbufferHead+1) % (CBUFFER_SIZE-1);
-	osMutexRelease(buffMutex);
-	osSemaphoreRelease(doneConsume);
-	}
+	osKernelStart ();        // start thread execution 
 }
 
