@@ -7,17 +7,15 @@ void consumer_thread(void const *argument);
 
 // Define threads
 osThreadDef(producer_thread, osPriorityNormal, 1, 0);
-osThreadDef(consumer_thread, osPriorityNormal,1,0);
+osThreadDef(consumer_thread, osPriorityNormal, 1, 0);
 
 // Define the semaphores
-
 osSemaphoreId doneProduce;      // Semaphore ID
 osSemaphoreDef(doneProduce);    // Semaphore Definition
 osSemaphoreId doneConsume;      // Semaphore ID
 osSemaphoreDef(doneConsume);    // Semaphore Definition
 
 // Define the mutex
-
 osMutexId buffMutex;            // Mutex ID
 osMutexDef(buffMutex);          // Mutex Definition
 
@@ -36,35 +34,36 @@ unsigned int tail = 0;   // tail = remove
 static int i=0;
 static int j=0;
 
-void enqueue(unsigned char item){
-	osSemaphoreWait(doneConsume, osWaitForever);     // wait for the Semaphore
-	osMutexWait(buffMutex, osWaitForever);
+void queueProduce(unsigned char item)
+{
+	osSemaphoreWait(doneConsume, osWaitForever);     // ensure consumer thread is not dequeueing data
+	osMutexWait(buffMutex, osWaitForever);			// secure mutex for critical section
 	cbuffer[head] = item;
 	head = (head + 1) % BUFFER_SIZE;
-	osMutexRelease(buffMutex);
-	osSemaphoreRelease(doneProduce);
+	osMutexRelease(buffMutex);						// done critical section, release mutex
+	osSemaphoreRelease(doneProduce);				// indicate no more data to enqueue, consumer may run
 }
 
-unsigned char  dequeue()
+unsigned char  queueConsume()
 {
-	unsigned int a =0XFF;
-	osSemaphoreWait(doneProduce, osWaitForever);
-	osMutexWait(buffMutex, osWaitForever);
-	a = cbuffer[tail];
+	unsigned int output =0XFF;
+	osSemaphoreWait(doneProduce, osWaitForever);		// ensure producer thread is not enqueueing data
+	osMutexWait(buffMutex, osWaitForever);				// secure mutex for critical section
+	output = cbuffer[tail];
 	tail = (tail + 1) % BUFFER_SIZE;
-	osMutexRelease(buffMutex);
-	osSemaphoreRelease(doneConsume);
-	return a;
+	osMutexRelease(buffMutex);							// done critical section, release mutex
+	osSemaphoreRelease(doneConsume);					// indicate no more data to dequeue, producer may run
+	return output;
 }
 
 
-int loop = 2;
+int loop = 10;
 
 
 void producer_thread (void const *argument){
 	
-	for(; i<loop; i++){
-		enqueue(put++);
+	for(; i<loop; i++){									
+		queueProduce(put++);
 	}
 
 }
@@ -72,7 +71,7 @@ void producer_thread (void const *argument){
 void consumer_thread(void const *argument){
 	
 	for(; j<loop; j++){
-		output=dequeue();
+		output = queueConsume();
 		SendChar(output);
 	}
 }
