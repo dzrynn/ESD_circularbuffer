@@ -19,12 +19,12 @@ osSemaphoreDef(doneConsume);    // Semaphore Definition
 osMutexId buffMutex;            // Mutex ID
 osMutexDef(buffMutex);          // Mutex Definition
 
-osThreadId T_uart1;
-osThreadId T_uart2;
+osThreadId T_consumer;
+osThreadId T_producer;
 
 #define BUFFER_SIZE 8
 
-static int data[10] = {0,1,2,4,2,5,0,2,0,8};		// data to be observed at output
+static int data[10] = {0,1,2,4,2,5,0,2,0,8};
 unsigned char put = 0;
 unsigned int output = 0;
 unsigned char cbuffer [BUFFER_SIZE] = {0};
@@ -58,7 +58,7 @@ unsigned char  queueConsume()
 }
 
 
-int loop = 10;
+int loop = 9;
 
 
 void producer_thread (void const *argument){
@@ -81,12 +81,12 @@ int main (void)
 {
 	osKernelInitialize ();		  // initialize CMSIS-RTOS
 	
-	USART1_Init();
+	//USART1_Init();
 	doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
 	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), BUFFER_SIZE);	
 	buffMutex = osMutexCreate(osMutex(buffMutex));
-	T_uart1 = osThreadCreate(osThread(producer_thread), NULL);
-	T_uart2 = osThreadCreate(osThread(consumer_thread), NULL);
+  T_producer = osThreadCreate(osThread(producer_thread), NULL);
+	T_consumer = osThreadCreate(osThread(consumer_thread), NULL);
 	
 
 	osKernelStart ();        // start thread execution 
