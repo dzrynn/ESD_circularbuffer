@@ -24,6 +24,7 @@ osThreadId T_uart2;
 
 #define BUFFER_SIZE 8
 
+static int data[10] = {0,1,2,4,2,5,0,2,0,8};		// data to be observed at output
 unsigned char put = 0;
 unsigned int output = 0;
 unsigned char cbuffer [BUFFER_SIZE] = {0};
@@ -38,7 +39,7 @@ void queueProduce(unsigned char item)
 {
 	osSemaphoreWait(doneConsume, osWaitForever);     // ensure consumer thread is not dequeueing data
 	osMutexWait(buffMutex, osWaitForever);			// secure mutex for critical section
-	cbuffer[head] = item;
+	cbuffer[head] = data[item];
 	head = (head + 1) % BUFFER_SIZE;
 	osMutexRelease(buffMutex);						// done critical section, release mutex
 	osSemaphoreRelease(doneProduce);				// indicate no more data to enqueue, consumer may run
