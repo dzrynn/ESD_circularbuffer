@@ -64,8 +64,7 @@ int loop = 9;
 void producer_thread (void const *argument){
 	
 	for(; i<loop; i++){									
-		queueProduce(put);
-		put++;
+		queueProduce(put++);
 	}
 
 }
@@ -84,7 +83,7 @@ int main (void)
 	
 	//USART1_Init();
 	doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
-	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), 1);	
+	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), BUFFER_SIZE);	
 	buffMutex = osMutexCreate(osMutex(buffMutex));
   T_producer = osThreadCreate(osThread(producer_thread), NULL);
 	T_consumer = osThreadCreate(osThread(consumer_thread), NULL);
