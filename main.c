@@ -1,6 +1,5 @@
 #include "cmsis_os.h"
 #include "stm32f10x.h"
-#include "uart.h"
 
 void producer_thread (void const *argument);
 void consumer_thread(void const *argument);
@@ -81,7 +80,6 @@ int main (void)
 {
 	osKernelInitialize ();		  // initialize CMSIS-RTOS
 	
-	//USART1_Init();
 	doneProduce = osSemaphoreCreate(osSemaphore(doneProduce), 0);	
 	doneConsume = osSemaphoreCreate(osSemaphore(doneConsume), BUFFER_SIZE);	
 	buffMutex = osMutexCreate(osMutex(buffMutex));
