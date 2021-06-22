@@ -74,7 +74,7 @@ unsigned char  queueConsume()
 }
 
 
-int loop = 11;
+int loop = 10;
 
 
 void producer_thread(void const *argument){
